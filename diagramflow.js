@@ -3,7 +3,6 @@ function anchor(x,y,cursorClass,isConnector)
     this.x=x;
     this.y=y;
     this.radius=5;
-    this.radius2=this.radius*this.radius;
     this.cursorClass=cursorClass;
     this.strokeStyle="black";
     this.strokeStyleHighlight="red";
@@ -30,7 +29,7 @@ function anchor(x,y,cursorClass,isConnector)
     }
     this.isInside=function(x,y,originX,originY,width,height){
         var d=this.distance(x,y,originX,originY,width,height);
-        if (d<=this.radius2){
+        if (d<=this.radius*this.radius){
             return true;
         }
         else
@@ -55,7 +54,6 @@ function link(from,to,anchorIndexFrom,anchorIndexTo,text){
     this.to=to;
     this.anchorFrom=anchorIndexFrom;
     this.anchorTo=anchorIndexTo;
-    this.backImage=null;
     this.segments=[];
     this.strokeStyle="black";
     this.strokeStyleHighlight="red";
@@ -189,6 +187,7 @@ var model={
     ctx:null,
     nodes:[],
     links:[],
+    myCanvas:null,
 
     addNode:function(node){
         this.nodes.push(node);
@@ -226,13 +225,13 @@ var model={
         }
     },
     init:function(canvasName){
-        var myCanvas=document.getElementById(canvasName);
-        this.ctx=myCanvas.getContext("2d");
-        myCanvas.addEventListener("mousedown",mouse.down)
-        myCanvas.addEventListener("mousemove",mouse.move)
-        myCanvas.addEventListener("mouseup",mouse.up)
-        myCanvas.addEventListener("dblclick",mouse.dblclick)
-        myCanvas.addEventListener("keydown",mouse.key)
+        this.myCanvas=document.getElementById(canvasName);
+        this.ctx=this.myCanvas.getContext("2d");
+        this.myCanvas.addEventListener("mousedown",mouse.down)
+        this.myCanvas.addEventListener("mousemove",mouse.move)
+        this.myCanvas.addEventListener("mouseup",mouse.up)
+        this.myCanvas.addEventListener("dblclick",mouse.dblclick)
+        this.myCanvas.addEventListener("keydown",mouse.key)
     },
 
     findNode:function(x,y){
@@ -262,11 +261,15 @@ var mouse={
             ed.style.display="none";
         }
         mouse.selLink=null;
-        var mouseX=ev.x-myCanvas.offsetLeft+window.scrollX;
-        var mouseY=ev.y-myCanvas.offsetTop+window.scrollY;
+        var rect = model.myCanvas.getBoundingClientRect();
+        var mouseX=ev.clientX-rect.left;
+        var mouseY=ev.clientY-rect.top;
         var newselNode=model.findNode(mouseX,mouseY);
         if (newselNode!=null){
             mouse.selNode=newselNode;
+            // Dispatch/Trigger/Fire the event
+            var event = new CustomEvent("selectionChanged", { "detail": mouse.selNode });
+            document.dispatchEvent(event);
             mouse.dragOrigin={
                     x:mouseX-model.nodes[mouse.selNode].x,
                     y:mouseY-model.nodes[mouse.selNode].y
@@ -312,8 +315,9 @@ var mouse={
         //console.log(mouse.selNode + " " + mouse.selAnchor + " " + mouse.dragging)
     },
     move:function(ev){
-        var mouseX=ev.x-myCanvas.offsetLeft+window.scrollX;
-        var mouseY=ev.y-myCanvas.offsetTop+window.scrollY;
+        var rect = model.myCanvas.getBoundingClientRect();
+        var mouseX=ev.clientX-rect.left;
+        var mouseY=ev.clientY-rect.top;
         if (mouse.dragging=="link"){
             model.draw();
             model.ctx.beginPath();
@@ -382,20 +386,21 @@ var mouse={
                 var i=element.isInsideAnchors(mouseX,mouseY);
                 if (i!=null){
                     mouse.selAnchor=i;
-                    myCanvas.style.cursor=element.anchors[i].cursorClass;
+                    model.myCanvas.style.cursor=element.anchors[i].cursorClass;
                     element.anchors[i].highlight(model.ctx,element.x,element.y,element.w,element.h);
                 }
                 else{
                     mouse.selAnchor=null;
                     mouse.dragging=null;
-                    myCanvas.style.cursor="auto";                    
+                    model.myCanvas.style.cursor="auto";                    
                 }
             }
         }
     },
     up:function(ev){
-        var mouseX=ev.x-myCanvas.offsetLeft+window.scrollX;
-        var mouseY=ev.y-myCanvas.offsetTop+window.scrollY;
+        var rect = model.myCanvas.getBoundingClientRect();
+        var mouseX=ev.clientX-rect.left;
+        var mouseY=ev.clientY-rect.top;
 
         if (mouse.dragging!=null){
             if (mouse.dragging=="link")
@@ -453,8 +458,9 @@ var mouse={
             ed.style.position="absolute";
             ed.style.margin=0;
             ed.style.padding=0;
-            ed.style.left=textNode.x +myCanvas.offsetLeft + "px";
-            ed.style.top=textNode.y + myCanvas.offsetTop+ "px";
+            var rect = model.myCanvas.getBoundingClientRect();
+            ed.style.left=textNode.x +rect.left + "px";
+            ed.style.top=textNode.y + rect.top+ "px";
             ed.style.width=textNode.w + "px";
             ed.style.height=textNode.h + "px";
             ed.value=textNode.text;
@@ -468,8 +474,8 @@ var mouse={
             var link=model.links[mouse.selLink];
             var elementT=link.segments[link.indexText];
             var elementT0=link.segments[link.indexText-1];
-        var x=(elementT.x+elementT0.x)/2;
-        var y=(elementT.y+elementT0.y)/2;
+            var x=(elementT.x+elementT0.x)/2;
+            var y=(elementT.y+elementT0.y)/2;
 
             var ed=document.getElementById("tmpTextEdit");
             if (!ed)
@@ -479,8 +485,9 @@ var mouse={
             ed.style.position="absolute";
             ed.style.margin=0;
             ed.style.padding=0;
-            ed.style.left=x + myCanvas.offsetLeft-100 + "px";
-            ed.style.top=y + myCanvas.offsetTop-10 + "px";
+            var rect = model.myCanvas.getBoundingClientRect();
+            ed.style.left=x +rect.left-100 + "px";
+            ed.style.top=y + rect.top-10 + "px";
             ed.style.width=200 + "px";
             ed.style.height=20 + "px";
             ed.value=link.text;

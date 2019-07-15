@@ -33,13 +33,11 @@ var Figures={
         ctx.fillStyle="black";
         ctx.font="10px Verdana";
         ctx.textBaseline="top";
-        //ctx.fillText("Hello World!",this.x,this.y);
         this.textfill(ctx);
     },
     Circle:function(ctx){
         ctx.beginPath();
         ctx.fillStyle=this.fillStyle;
-        //ctx.arc(this.x+this.w/2,this.y+this.h/2,this.w/2,0,2*Math.PI,false);
         ctx.ellipse(this.x+this.w/2,this.y+this.h/2, this.w/2, this.h/2, 0, 0, 2 * Math.PI);
         ctx.fill();
         this.textfill(ctx);
@@ -81,6 +79,12 @@ model.addLink(new link(1,2,3,3,"dblclick me to edit"));
 
 model.init("myCanvas");
 model.draw();
+
+// Add an event listener
+document.addEventListener("selectionChanged", function(e) {
+    console.log("Selection changed to" + e.detail); // Example of event selectionChanged
+  });
+
 </script>
 <!-- Global site tag (gtag.js) - Google Analytics -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-135656500-1"></script>

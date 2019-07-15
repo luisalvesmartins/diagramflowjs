@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="diagramflow.js"></script>
+</head>
+<body>
+    <h1>Demo</h1>
+    <canvas id="myCanvas" style="position:absolute;left:50px;border:1px" width="700" height="400" tabindex="1"></canvas>
+
+<script>
+
+var anchors=[
+    new anchor(0,0,"nw-resize"),
+    new anchor(.5,0,"n-resize",true),
+    new anchor(1,0,"ne-resize"),
+    new anchor(0,.5,"w-resize",true),
+    new anchor(1,.5,"e-resize",true),
+    new anchor(0,1,"sw-resize"),
+    new anchor(.5,1,"s-resize",true),
+    new anchor(1,1,"se-resize"), 
+    new anchor(.5,.5,"move")
+];
+var Figures={
+    Rectangle:function(ctx){
+        ctx.beginPath();
+        ctx.fillStyle=this.fillStyle;
+        ctx.strokeStyle="blue";
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.fillStyle="black";
+        ctx.font="10px Verdana";
+        ctx.textBaseline="top";
+        //ctx.fillText("Hello World!",this.x,this.y);
+        this.textfill(ctx);
+    },
+    Circle:function(ctx){
+        ctx.beginPath();
+        ctx.fillStyle=this.fillStyle;
+        //ctx.arc(this.x+this.w/2,this.y+this.h/2,this.w/2,0,2*Math.PI,false);
+        ctx.ellipse(this.x+this.w/2,this.y+this.h/2, this.w/2, this.h/2, 0, 0, 2 * Math.PI);
+        ctx.fill();
+        this.textfill(ctx);
+    },
+    Diamond:function(ctx){
+        ctx.beginPath();
+        ctx.fillStyle=this.fillStyle;
+        ctx.moveTo(this.x,this.y+this.h/2);
+        ctx.lineTo(this.x+this.w/2,this.y);
+        ctx.lineTo(this.x+this.w,this.y+this.h/2);
+        ctx.lineTo(this.x+this.w/2,this.y+this.h);
+        ctx.fill();
+        this.textfill(ctx);
+    }
+}
+
+model.addNode(new node(10,10,100,100,anchors,"A Square, dblclick me to edit the text","green",Figures.Rectangle));
+
+anchors=[
+    new anchor(.5,0,"n-resize",true),
+    new anchor(0,.5,"w-resize",true),
+    new anchor(1,.5,"e-resize",true),
+    new anchor(.5,1,"s-resize",true),
+    new anchor(.5,.5,"move")
+];
+model.addNode(new node(30,140,100,100,anchors,"A Circle, click on the center handle to move","white", Figures.Circle));
+anchors=[
+    new anchor(0,0,"nw-resize"),new anchor(.5,0,"n-resize",true),new anchor(1,0,"ne-resize"),
+    new anchor(0,.5,"w-resize",true),new anchor(1,.5,"e-resize",true),
+    new anchor(0,1,"sw-resize"),new anchor(.5,1,"s-resize",true),new anchor(1,1,"se-resize"), 
+    new anchor(.5,.5,"move")
+];
+model.addNode(new node(250,80,150,150,anchors,"A Diamond, click on the corner handles to resize.","yellow", Figures.Diamond));
+
+model.addNode(new node(350,250,150,100,anchors,"A Rectangle, drag from the diamond to here to link.","Cyan", Figures.Rectangle));
+
+model.addLink(new link(0,1,6,1,"Link 1"));
+model.addLink(new link(1,2,3,3,"dblclick me to edit"));
+
+model.init("myCanvas");
+model.draw();
+</script>
+</body>
+</html>

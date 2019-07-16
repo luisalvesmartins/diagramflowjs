@@ -103,13 +103,20 @@ var model={
         this.draw=function(ctx,originX,originY,width,height){
             ctx.beginPath();
             ctx.strokeStyle = this.strokeStyle;
-            ctx.arc(x*width+originX,y*height+originY,this.radius,0,2*Math.PI,false);
+            if (this.isConnector)
+                ctx.arc(x*width+originX,y*height+originY,this.radius,0,2*Math.PI,false);
+            else
+                ctx.rect(x*width+originX-this.radius,y*height+originY-this.radius,this.radius*2,this.radius*2);
             ctx.stroke();
         }
         this.highlight=function(ctx,originX,originY,width,height){
             ctx.beginPath();
             ctx.strokeStyle = this.strokeStyleHighlight;
-            ctx.arc(x*width+originX,y*height+originY,this.radius*1.5,0,2*Math.PI,false);
+            var r=this.radius*1.5;
+            if (this.isConnector)
+                ctx.arc(x*width+originX,y*height+originY,r,0,2*Math.PI,false);
+            else
+                ctx.rect(x*width+originX-r,y*height+originY-r,r*2,r*2);
             ctx.stroke();
         }
         this.distance=function(x,y,originX,originY,width,height)
@@ -368,7 +375,43 @@ var model={
             }
             return false;
         }
+    },
+    defaultAnchors:function(figure)
+    {
+        var anchors=[];
+        switch (figure) {
+        case "Square":
+        case "Rectangle":
+        case "RoundedRectangle":
+            anchors=[
+                new model.anchor(0,0,"nw-resize"),
+                new model.anchor(.5,0,"n-resize",true),
+                new model.anchor(1,0,"ne-resize"),
+                new model.anchor(0,.5,"w-resize",true),
+                new model.anchor(1,.5,"e-resize",true),
+                new model.anchor(0,1,"sw-resize"),
+                new model.anchor(.5,1,"s-resize",true),
+                new model.anchor(1,1,"se-resize"), 
+            ];
+            break;
+        case "Circle":
+        case "Diamond":
+            anchors=[
+                new model.anchor(0,0,"nw-resize"),
+                new model.anchor(.5,0,"n-resize",true),
+                new model.anchor(1,0,"ne-resize"),
+                new model.anchor(0,.5,"w-resize",true),
+                new model.anchor(1,.5,"e-resize",true),
+                new model.anchor(0,1,"sw-resize"),
+                new model.anchor(.5,1,"s-resize",true),
+                new model.anchor(1,1,"se-resize"), 
+            ];
+        default:
+            break;
+        }
+        return anchors;
     }
+
 };
 var mouse={
     dragging:false,
@@ -401,19 +444,33 @@ var mouse={
                     };
             if (mouse.selAnchor!=null)
             {
+                if (model.nodes[mouse.selNode].anchors[mouse.selAnchor].isConnector)
+                {
+                    console.log("A")
+                    model.nodes[mouse.selNode].highlight(model.ctx);
+                    mouse.selAnchor=model.nodes[mouse.selNode].nearestAnchor(mouseX,mouseY,true);
+                    if (model.nodes[mouse.selNode].anchors[mouse.selAnchor].isConnector)
+                        mouse.dragging="link";
+                }
+                else
+                {
                 //resize
-                mouse.dragging="anchor";
+                    mouse.dragging="anchor";
+                }
             }
             else{
                 //mouse.dragImage=model.ctx.getImageData(model.nodes[selNode].x,model.nodes[selNode].y,200,200);
                 model.nodes[mouse.selNode].highlight(model.ctx);
                 mouse.selAnchor=model.nodes[mouse.selNode].nearestAnchor(mouseX,mouseY,true);
-                mouse.dragging="link";
+                if (model.nodes[mouse.selNode].anchors[mouse.selAnchor].isConnector)
+                    mouse.dragging="link";
+                mouse.dragging="move";
             }
             model.draw();
         }
         else
         {
+            console.log("B")
             if (mouse.selAnchor==null){
                 //deselect
                 mouse.selNode=null;
@@ -433,7 +490,11 @@ var mouse={
                 }
             }
             else{
-                mouse.dragging="anchor";
+                console.log("C)")
+                if (model.nodes[mouse.selNode].anchors[mouse.selAnchor].isConnector)
+                    mouse.dragging="link";
+                else
+                    mouse.dragging="anchor";
                 model.draw();
             }
         }
@@ -451,6 +512,17 @@ var mouse={
             model.ctx.lineTo(mouseX,mouseY);
             model.ctx.stroke();
 
+        }
+        else if (mouse.dragging=="move"){
+            model.nodes[mouse.selNode].x=mouseX-mouse.dragOrigin.x;
+            model.nodes[mouse.selNode].y=mouseY-mouse.dragOrigin.y;
+
+            model.links.forEach(element => {
+                if (element.to==mouse.selNode || element.from==mouse.selNode){
+                    element.reSegment();
+                }
+            });
+            model.draw();
         }
         else if (mouse.dragging=="anchor")
         {
@@ -511,7 +583,10 @@ var mouse={
                 var i=element.isInsideAnchors(mouseX,mouseY);
                 if (i!=null){
                     mouse.selAnchor=i;
-                    model.myCanvas.style.cursor=element.anchors[i].cursorClass;
+                    if (element.anchors[i].isConnector)
+                    model.myCanvas.style.cursor="crosshair";
+                    else
+                        model.myCanvas.style.cursor=element.anchors[i].cursorClass;
                     element.anchors[i].highlight(model.ctx,element.x,element.y,element.w,element.h);
                 }
                 else{

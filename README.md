@@ -21,9 +21,12 @@ var anchors=[
     new model.anchor(1,.5,"e-resize",true),
     new model.anchor(0,1,"sw-resize"),
     new model.anchor(.5,1,"s-resize",true),
-    new model.anchor(1,1,"se-resize"), 
-    new model.anchor(.5,.5,"move")
+    new model.anchor(1,1,"se-resize")
 ];
+
+//or use the default anchors (easier,eh?)
+anchors=model.defaultAnchors("Rectangle");
+
 //add the node
 model.addNode(
     new model.node(x,y, width,height, anchors, text, color, renderFunction, customProperties)

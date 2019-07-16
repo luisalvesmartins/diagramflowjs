@@ -253,7 +253,7 @@ var model={
                 element.anchors.forEach(a => {
                     anchors.push(new anchor(a.x,a.y,a.cursorClass,a.isConnector));
                 });
-                model.addNode(new node(element.x,element.y,element.w,element.h,anchors,element.text,element.fillStyle, Figures.Rectangle, element.data));
+                model.addNode(new node(element.x,element.y,element.w,element.h,anchors,element.text,element.fillStyle, element.figure, element.data));
             }
         }
         model.links=[];
@@ -261,7 +261,7 @@ var model={
             for (let index = 0; index < sourceModel.links.length; index++) {
                 const element = sourceModel.links[index];
     
-                model.addLink(new link(element.from,element.to,element.anchorFrom,element.anchorTo,element.text));
+                model.addLink(new link(element.from,element.to, element.anchorFrom,element.anchorTo, element.text));
             }
         }
         mouse.selNode=null;
@@ -524,7 +524,7 @@ var mouse={
         }
     }
 }
-function node(x,y,w,h,anchors,text,fillStyle,figureCallback,args)
+function node(x,y,w,h,anchors,text,fillStyle,figure,args)
 {
     this.textfill=function(ctx) {
         var fontSize   =  12;
@@ -573,23 +573,13 @@ function node(x,y,w,h,anchors,text,fillStyle,figureCallback,args)
     this.strokeStyle="black";
     this.fillStyle=fillStyle;
     this.text=text;
-    this.figRectangle=function(ctx){
-        ctx.beginPath();
-        ctx.fillStyle=this.fillStyle;
-        ctx.strokeStyle="blue";
-        ctx.fillRect(this.x, this.y, this.w, this.h);
-        ctx.fillStyle="black";
-        ctx.font="10px Verdana";
-        ctx.textBaseline="top";
-        //ctx.fillText("Hello World!",this.x,this.y);
-        this.textfill(ctx);
-    }
-    if (!figureCallback){
-        figureCallback=this.figRectangle;
-    }
-    this.figure=figureCallback;
+    this.figure=figure;
     this.draw=function(ctx){
-        this.figure(ctx);
+        if (typeof (this.figure)==="undefined" || typeof (this.figure)==="function"){
+            this.figure="Rectangle";
+        }
+        else
+            Figures[this.figure](ctx,this);
     };
     this.anchorCoords=function(anchorIndex){
         return {x:this.x+this.anchors[anchorIndex].x*this.w,y:this.y+this.anchors[anchorIndex].y*this.h};

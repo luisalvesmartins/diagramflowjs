@@ -26,22 +26,22 @@ var anchors=[
 ];
 //add the node
 model.addNode(
-    new node(x,y, width,height, anchors, text, color, renderFunction)
+    new node(x,y, width,height, anchors, text, color, renderFunction, customProperties)
     );
 `````
 
 Example of a renderFunction for a rectangle:
 
 `````javascript
-    Rectangle:function(ctx){ //only variable passed: ctx
+    Rectangle:function(ctx,node){ //only variable passed: ctx
         ctx.beginPath();
-        ctx.fillStyle=this.fillStyle; //object props: fillStyle,x,y,w,h,text
+        ctx.fillStyle=node.fillStyle; //object props: fillStyle,x,y,w,h,text
         ctx.strokeStyle="blue";
-        ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.fillRect(node.x, node.y, node.w, node.h);
         ctx.fillStyle="black";
         ctx.font="10px Verdana";
         ctx.textBaseline="top";
-        this.textfill(ctx); //render the text automatically in the bounding box
+        node.textfill(ctx); //render the text automatically in the bounding box
     }
 `````
 

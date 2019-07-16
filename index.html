@@ -14,15 +14,15 @@
 <script>
 
 var anchors=[
-    new anchor(0,0,"nw-resize"),
-    new anchor(.5,0,"n-resize",true),
-    new anchor(1,0,"ne-resize"),
-    new anchor(0,.5,"w-resize",true),
-    new anchor(1,.5,"e-resize",true),
-    new anchor(0,1,"sw-resize"),
-    new anchor(.5,1,"s-resize",true),
-    new anchor(1,1,"se-resize"), 
-    new anchor(.5,.5,"move")
+    new model.anchor(0,0,"nw-resize"),
+    new model.anchor(.5,0,"n-resize",true),
+    new model.anchor(1,0,"ne-resize"),
+    new model.anchor(0,.5,"w-resize",true),
+    new model.anchor(1,.5,"e-resize",true),
+    new model.anchor(0,1,"sw-resize"),
+    new model.anchor(.5,1,"s-resize",true),
+    new model.anchor(1,1,"se-resize"), 
+    new model.anchor(.5,.5,"move")
 ];
 var Figures={
     Rectangle:function(ctx,node){
@@ -54,28 +54,28 @@ var Figures={
     }
 }
 
-model.addNode(new node(10,10,100,100,anchors,"A Square, dblclick me to edit the text","green","Rectangle"));
+model.addNode(new model.node(10,10,100,100,anchors,"A Square, dblclick me to edit the text","green","Rectangle"));
 
 anchors=[
-    new anchor(.5,0,"n-resize",true),
-    new anchor(0,.5,"w-resize",true),
-    new anchor(1,.5,"e-resize",true),
-    new anchor(.5,1,"s-resize",true),
-    new anchor(.5,.5,"move")
+    new model.anchor(.5,0,"n-resize",true),
+    new model.anchor(0,.5,"w-resize",true),
+    new model.anchor(1,.5,"e-resize",true),
+    new model.anchor(.5,1,"s-resize",true),
+    new model.anchor(.5,.5,"move")
 ];
-model.addNode(new node(30,140,100,100,anchors,"A Circle, click on the center handle to move","white", "Circle"));
+model.addNode(new model.node(30,140,100,100,anchors,"A Circle, click on the center handle to move","white", "Circle"));
 anchors=[
-    new anchor(0,0,"nw-resize"),new anchor(.5,0,"n-resize",true),new anchor(1,0,"ne-resize"),
-    new anchor(0,.5,"w-resize",true),new anchor(1,.5,"e-resize",true),
-    new anchor(0,1,"sw-resize"),new anchor(.5,1,"s-resize",true),new anchor(1,1,"se-resize"), 
-    new anchor(.5,.5,"move")
+    new model.anchor(0,0,"nw-resize"),new model.anchor(.5,0,"n-resize",true),new model.anchor(1,0,"ne-resize"),
+    new model.anchor(0,.5,"w-resize",true),new model.anchor(1,.5,"e-resize",true),
+    new model.anchor(0,1,"sw-resize"),new model.anchor(.5,1,"s-resize",true),new model.anchor(1,1,"se-resize"), 
+    new model.anchor(.5,.5,"move")
 ];
-model.addNode(new node(250,80,150,150,anchors,"A Diamond, click on the corner handles to resize.","yellow", "Diamond"));
+model.addNode(new model.node(250,80,150,150,anchors,"A Diamond, click on the corner handles to resize.","yellow", "Diamond"));
 
-model.addNode(new node(350,250,150,100,anchors,"A Rectangle, drag from the diamond to here to link.","Cyan", "Rectangle"));
+model.addNode(new model.node(350,250,150,100,anchors,"A Rectangle, drag from the diamond to here to link.","Cyan", "Rectangle"));
 
-model.addLink(new link(0,1,6,1,"Link 1"));
-model.addLink(new link(1,2,3,3,"dblclick me to edit"));
+model.addLink(new model.link(0,1,6,1,"Link 1"));
+model.addLink(new model.link(1,2,3,3,"dblclick me to edit"));
 
 model.init("myCanvas");
 model.draw();

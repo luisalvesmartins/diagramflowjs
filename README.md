@@ -14,28 +14,28 @@ A node is added by defining the anchors and the image render:
 `````javascript
 //Typical anchors for a square object
 var anchors=[
-    new anchor(0,0,"nw-resize"),
-    new anchor(.5,0,"n-resize",true),
-    new anchor(1,0,"ne-resize"),
-    new anchor(0,.5,"w-resize",true),
-    new anchor(1,.5,"e-resize",true),
-    new anchor(0,1,"sw-resize"),
-    new anchor(.5,1,"s-resize",true),
-    new anchor(1,1,"se-resize"), 
-    new anchor(.5,.5,"move")
+    new model.anchor(0,0,"nw-resize"),
+    new model.anchor(.5,0,"n-resize",true),
+    new model.anchor(1,0,"ne-resize"),
+    new model.anchor(0,.5,"w-resize",true),
+    new model.anchor(1,.5,"e-resize",true),
+    new model.anchor(0,1,"sw-resize"),
+    new model.anchor(.5,1,"s-resize",true),
+    new model.anchor(1,1,"se-resize"), 
+    new model.anchor(.5,.5,"move")
 ];
 //add the node
 model.addNode(
-    new node(x,y, width,height, anchors, text, color, renderFunction, customProperties)
+    new model.node(x,y, width,height, anchors, text, color, renderFunction, customProperties)
     );
 `````
 
 Example of a renderFunction for a rectangle:
 
 `````javascript
-    Rectangle:function(ctx,node){ //only variable passed: ctx
+    Rectangle:function(ctx,node){ // ctx and node object
         ctx.beginPath();
-        ctx.fillStyle=node.fillStyle; //object props: fillStyle,x,y,w,h,text
+        ctx.fillStyle=node.fillStyle; //node object props: fillStyle,x,y,w,h,text, data
         ctx.strokeStyle="blue";
         ctx.fillRect(node.x, node.y, node.w, node.h);
         ctx.fillStyle="black";
@@ -48,7 +48,7 @@ Example of a renderFunction for a rectangle:
 A link is added by calling
 
 `````javascript
-model.addLink(new link( fromNode, toNode, anchorFrom, anchorTo, text));
+model.addLink(new model.link( fromNode, toNode, anchorFrom, anchorTo, text));
 `````
 
 Check the demo index.html page for a running example

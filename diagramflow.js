@@ -1,188 +1,3 @@
-function anchor(x,y,cursorClass,isConnector)
-{
-    this.x=x;
-    this.y=y;
-    this.radius=5;
-    this.cursorClass=cursorClass;
-    this.strokeStyle="black";
-    this.strokeStyleHighlight="red";
-
-    if (isConnector==true)
-        this.isConnector=isConnector;
-    else
-        this.isConnector=false;
-    this.draw=function(ctx,originX,originY,width,height){
-        ctx.beginPath();
-        ctx.strokeStyle = this.strokeStyle;
-        ctx.arc(x*width+originX,y*height+originY,this.radius,0,2*Math.PI,false);
-        ctx.stroke();
-    }
-    this.highlight=function(ctx,originX,originY,width,height){
-        ctx.beginPath();
-        ctx.strokeStyle = this.strokeStyleHighlight;
-        ctx.arc(x*width+originX,y*height+originY,this.radius*1.5,0,2*Math.PI,false);
-        ctx.stroke();
-    }
-    this.distance=function(x,y,originX,originY,width,height)
-    {
-        return (x-this.x*width-originX)*(x-this.x*width-originX) + (y-this.y*height-originY)*(y-this.y*height-originY);
-    }
-    this.isInside=function(x,y,originX,originY,width,height){
-        var d=this.distance(x,y,originX,originY,width,height);
-        if (d<=this.radius*this.radius){
-            return true;
-        }
-        else
-            return false;
-    };
-}
-function link(from,to,anchorIndexFrom,anchorIndexTo,text){
-    this.directionToVector=function(cursorClass){
-        switch (cursorClass) {
-        case "w-resize":
-            return {x:-1,y:0};
-        case "e-resize":
-            return {x:1,y:0};
-        case "s-resize":
-            return {x:0,y:1};
-        case "n-resize":
-            return {x:0,y:-1};
-        }
-    }
-
-    this.from=from;
-    this.to=to;
-    this.anchorFrom=anchorIndexFrom;
-    this.anchorTo=anchorIndexTo;
-    this.segments=[];
-    this.strokeStyle="black";
-    this.strokeStyleHighlight="red";
-    this.indexText=0;
-    this.text=text;
-
-    this.reSegment=function(){
-        this.segments=[];
-        var d1=this.directionToVector(model.nodes[from].anchors[this.anchorFrom].cursorClass);
-
-        var aC1=model.nodes[from].anchorCoords(this.anchorFrom);
-        this.segments.push({x:aC1.x,y:aC1.y});
-
-        //FIRST
-        aC1.x+=10*d1.x;
-        aC1.y+=10*d1.y;
-        this.segments.push({x:aC1.x,y:aC1.y});
-
-        var aC2=model.nodes[to].anchorCoords(this.anchorTo);
-        var d2=this.directionToVector(model.nodes[to].anchors[this.anchorTo].cursorClass);
-        var origaC2x=aC2.x;
-        var origaC2y=aC2.y;
-        aC2.x+=10*d2.x;
-        aC2.y+=10*d2.y;
-
-
-        var dx=Math.abs(aC1.x-aC2.x);
-        var dy=Math.abs(aC1.y-aC2.y);
-        var dxm=(aC1.x+aC2.x)/2;
-        var dym=(aC1.y+aC2.y)/2;
-        if (dx>dy)
-        {
-            if (Math.sign(aC2.y-aC1.y)!=Math.sign(d1.y))
-            {
-                this.segments.push({x:aC2.x,y:aC1.y});
-            }
-            else
-                this.segments.push({x:aC1.x,y:aC2.y});
-        }
-        else
-        {
-            if (Math.sign(aC2.x-aC1.x)!=Math.sign(d1.x))
-                this.segments.push({x:aC2.x,y:aC1.y});
-            else
-                this.segments.push({x:aC1.x,y:aC2.y});
-        }
-        this.segments.push({x:aC2.x,y:aC2.y});
-        this.segments.push({x:origaC2x,y:origaC2y});
-
-        var element0 = this.segments[0];
-        var maxD=0;
-        this.indexText=0;
-        for (let index = 1; index < this.segments.length; index++) {
-            const element = this.segments[index];
-            var d=Math.abs(element.x-element0.x)+Math.abs(element.y-element0.y);
-            if (d>maxD){
-                maxD=d;
-                this.indexText=index;
-            }
-            element0=element;
-        }
-    }
-
-    this.reSegment();
-
-    this.draw=function(ctx){
-        //PATH
-        ctx.beginPath();
-        ctx.strokeStyle = this.strokeStyle;
-        const element = this.segments[0];
-        ctx.moveTo(element.x,element.y);
-        for (let index = 1; index < this.segments.length; index++) {
-            const element = this.segments[index];
-            ctx.lineTo(element.x,element.y);
-        }
-        ctx.stroke();
-        //TEXT
-        var elementT=this.segments[this.indexText];
-        var elementT0=this.segments[this.indexText-1];
-        ctx.beginPath();
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(this.text,(elementT.x+elementT0.x)/2,(elementT.y+elementT0.y)/2);
-        ctx.fill();
-        //ENDPOINT
-        var element1 = this.segments[this.segments.length-1];
-        ctx.beginPath();
-        ctx.fillStyle=this.strokeStyle;
-        ctx.strokeStyle = this.strokeStyle;
-        ctx.arc(element1.x,element1.y,2*2,0,2*Math.PI,false);
-        ctx.fill();
-    }
-    this.highlight=function(ctx){
-        //SEGMENT
-        ctx.beginPath();
-        ctx.strokeStyle = this.strokeStyleHighlight;
-        const element = this.segments[0];
-        ctx.moveTo(element.x,element.y);
-        for (let index = 1; index < this.segments.length; index++) {
-            const element = this.segments[index];
-            ctx.lineTo(element.x,element.y);
-        }
-        var element1 = this.segments[this.segments.length-1];
-        ctx.stroke();
-        //ENDPOINT
-        ctx.beginPath();
-        ctx.fillStyle=this.strokeStyleHighlight;
-        ctx.strokeStyle = this.strokeStyleHighlight;
-        ctx.arc(element1.x,element1.y,2*2,0,2*Math.PI,false);
-        ctx.fill();
-    }
-
-    this.distance=function(a,b){
-        return Math.sqrt((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y));
-    }
-    this.isBetween=function(a,c,b){
-        return this.distance(a,c)+this.distance(c,b)-this.distance(a,b)<1;
-    }
-    this.isOverLink=function(point){
-        for (let index = 1; index < this.segments.length; index++) {
-            const element = this.segments[index];
-            const element0 = this.segments[index-1];
-            if (this.isBetween(element0,point,element))
-                return true;
-        }
-        return false;
-    }
-
-}
 var model={
     ctx:null,
     nodes:[],
@@ -251,9 +66,9 @@ var model={
                 const element = sourceModel.nodes[index];
                 var anchors=[];
                 element.anchors.forEach(a => {
-                    anchors.push(new anchor(a.x,a.y,a.cursorClass,a.isConnector));
+                    anchors.push(new model.anchor(a.x,a.y,a.cursorClass,a.isConnector));
                 });
-                model.addNode(new node(element.x,element.y,element.w,element.h,anchors,element.text,element.fillStyle, element.figure, element.data));
+                model.addNode(new model.node(element.x,element.y,element.w,element.h,anchors,element.text,element.fillStyle, element.figure, element.data));
             }
         }
         model.links=[];
@@ -261,7 +76,7 @@ var model={
             for (let index = 0; index < sourceModel.links.length; index++) {
                 const element = sourceModel.links[index];
     
-                model.addLink(new link(element.from,element.to, element.anchorFrom,element.anchorTo, element.text));
+                model.addLink(new model.link(element.from,element.to, element.anchorFrom,element.anchorTo, element.text));
             }
         }
         mouse.selNode=null;
@@ -271,6 +86,288 @@ var model={
     selectNode:function(node){
         mouse.selNode=node;
         model.draw();
+    },
+    anchor:function(x,y,cursorClass,isConnector)
+    {
+        this.x=x;
+        this.y=y;
+        this.radius=5;
+        this.cursorClass=cursorClass;
+        this.strokeStyle="black";
+        this.strokeStyleHighlight="red";
+
+        if (isConnector==true)
+            this.isConnector=isConnector;
+        else
+            this.isConnector=false;
+        this.draw=function(ctx,originX,originY,width,height){
+            ctx.beginPath();
+            ctx.strokeStyle = this.strokeStyle;
+            ctx.arc(x*width+originX,y*height+originY,this.radius,0,2*Math.PI,false);
+            ctx.stroke();
+        }
+        this.highlight=function(ctx,originX,originY,width,height){
+            ctx.beginPath();
+            ctx.strokeStyle = this.strokeStyleHighlight;
+            ctx.arc(x*width+originX,y*height+originY,this.radius*1.5,0,2*Math.PI,false);
+            ctx.stroke();
+        }
+        this.distance=function(x,y,originX,originY,width,height)
+        {
+            return (x-this.x*width-originX)*(x-this.x*width-originX) + (y-this.y*height-originY)*(y-this.y*height-originY);
+        }
+        this.isInside=function(x,y,originX,originY,width,height){
+            var d=this.distance(x,y,originX,originY,width,height);
+            if (d<=this.radius*this.radius){
+                return true;
+            }
+            else
+                return false;
+        };
+    },
+    node:function(x,y,w,h,anchors,text,fillStyle,figure,args)
+    {
+        this.textfill=function(ctx) {
+            var fontSize   =  12;
+            var lines      =  new Array();
+            var width = 0, i, j;
+            var result;
+            var color = this.strokeStyle || "white";
+            var text=this.text;
+            var max_width=this.w;
+
+            // Font and size is required for ctx.measureText()
+            ctx.textAlign = "left";
+            ctx.font   = fontSize + "px Arial";
+
+            ctx.textAlign="center";
+            // Start calculation
+            while ( text.length ) {
+                for( i=text.length; ctx.measureText(text.substr(0,i)).width > max_width-14; i-- );
+            
+                result = text.substr(0,i);
+            
+                if ( i !== text.length )
+                    for( j=0; result.indexOf(" ",j) !== -1; j=result.indexOf(" ",j)+1 );
+                
+                lines.push( result.substr(0, j|| result.length) );
+                width = Math.max( width, ctx.measureText(lines[ lines.length-1 ]).width );
+                text  = text.substr( lines[ lines.length-1 ].length, text.length );
+            }
+            
+            ctx.font   = fontSize + "px Arial";
+
+            // Render
+            ctx.fillStyle = color;
+            var vOffSet=(this.h-(lines.length+1)*(fontSize+5))/2-5;
+            for ( i=0, j=lines.length; i<j; ++i ) {
+                ctx.fillText( lines[i], this.x+this.w/2 , this.y + 5 + fontSize + (fontSize+5) * i + vOffSet );
+            }
+        }
+
+        this.x=x;
+        this.y=y;
+        this.w=w;
+        this.h=h;
+        this.data=args;
+        this.anchors=anchors;
+        this.strokeStyle="black";
+        this.fillStyle=fillStyle;
+        this.text=text;
+        this.figure=figure;
+        this.draw=function(ctx){
+            if (typeof (this.figure)==="undefined" || typeof (this.figure)==="function"){
+                this.figure="Rectangle";
+            }
+            else
+                Figures[this.figure](ctx,this);
+        };
+        this.anchorCoords=function(anchorIndex){
+            return {x:this.x+this.anchors[anchorIndex].x*this.w,y:this.y+this.anchors[anchorIndex].y*this.h};
+        }
+        this.isInside=function(x,y){
+            if (x>=this.x && x<=this.x+this.w && y>=this.y && y<=this.y+this.h)
+                return true;
+            else
+                return false;
+        };
+        this.isInsideAnchors=function(x,y){
+            for (let index = 0; index < this.anchors.length; index++) {
+                const element = this.anchors[index];
+                if (element.isInside(x,y,this.x,this.y,this.w,this.h)==true)
+                {
+                    return index;
+                }
+            }
+            return null;
+        };
+        this.nearestAnchor=function(x,y,wantAConnector){
+            var dMin=999999;
+            var sel=null;
+            for (let index = 0; index < this.anchors.length; index++) {
+                const element = this.anchors[index];
+                var d=element.distance(x,y,this.x,this.y,this.w,this.h);
+                if (d<dMin && element.cursorClass!="move")
+                {
+                    if (!wantAConnector || wantAConnector && element.isConnector==true){
+                        dMin=d;
+                        sel=index;
+                    }
+                }
+            }
+            return sel;
+        };
+        this.highlight=function(ctx){
+            this.anchors.forEach(element => {
+                element.draw(ctx,this.x,this.y,this.w,this.h);
+            });
+        }
+    },
+    link:function(from,to,anchorIndexFrom,anchorIndexTo,text){
+        this.directionToVector=function(cursorClass){
+            switch (cursorClass) {
+            case "w-resize":
+                return {x:-1,y:0};
+            case "e-resize":
+                return {x:1,y:0};
+            case "s-resize":
+                return {x:0,y:1};
+            case "n-resize":
+                return {x:0,y:-1};
+            }
+        }
+    
+        this.from=from;
+        this.to=to;
+        this.anchorFrom=anchorIndexFrom;
+        this.anchorTo=anchorIndexTo;
+        this.segments=[];
+        this.strokeStyle="black";
+        this.strokeStyleHighlight="red";
+        this.indexText=0;
+        this.text=text;
+    
+        this.reSegment=function(){
+            this.segments=[];
+            var d1=this.directionToVector(model.nodes[from].anchors[this.anchorFrom].cursorClass);
+    
+            var aC1=model.nodes[from].anchorCoords(this.anchorFrom);
+            this.segments.push({x:aC1.x,y:aC1.y});
+    
+            //FIRST
+            aC1.x+=10*d1.x;
+            aC1.y+=10*d1.y;
+            this.segments.push({x:aC1.x,y:aC1.y});
+    
+            var aC2=model.nodes[to].anchorCoords(this.anchorTo);
+            var d2=this.directionToVector(model.nodes[to].anchors[this.anchorTo].cursorClass);
+            var origaC2x=aC2.x;
+            var origaC2y=aC2.y;
+            aC2.x+=10*d2.x;
+            aC2.y+=10*d2.y;
+    
+    
+            var dx=Math.abs(aC1.x-aC2.x);
+            var dy=Math.abs(aC1.y-aC2.y);
+            var dxm=(aC1.x+aC2.x)/2;
+            var dym=(aC1.y+aC2.y)/2;
+            if (dx>dy)
+            {
+                if (Math.sign(aC2.y-aC1.y)!=Math.sign(d1.y))
+                {
+                    this.segments.push({x:aC2.x,y:aC1.y});
+                }
+                else
+                    this.segments.push({x:aC1.x,y:aC2.y});
+            }
+            else
+            {
+                if (Math.sign(aC2.x-aC1.x)!=Math.sign(d1.x))
+                    this.segments.push({x:aC2.x,y:aC1.y});
+                else
+                    this.segments.push({x:aC1.x,y:aC2.y});
+            }
+            this.segments.push({x:aC2.x,y:aC2.y});
+            this.segments.push({x:origaC2x,y:origaC2y});
+    
+            var element0 = this.segments[0];
+            var maxD=0;
+            this.indexText=0;
+            for (let index = 1; index < this.segments.length; index++) {
+                const element = this.segments[index];
+                var d=Math.abs(element.x-element0.x)+Math.abs(element.y-element0.y);
+                if (d>maxD){
+                    maxD=d;
+                    this.indexText=index;
+                }
+                element0=element;
+            }
+        }
+    
+        this.reSegment();
+    
+        this.draw=function(ctx){
+            //PATH
+            ctx.beginPath();
+            ctx.strokeStyle = this.strokeStyle;
+            const element = this.segments[0];
+            ctx.moveTo(element.x,element.y);
+            for (let index = 1; index < this.segments.length; index++) {
+                const element = this.segments[index];
+                ctx.lineTo(element.x,element.y);
+            }
+            ctx.stroke();
+            //TEXT
+            var elementT=this.segments[this.indexText];
+            var elementT0=this.segments[this.indexText-1];
+            ctx.beginPath();
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(this.text,(elementT.x+elementT0.x)/2,(elementT.y+elementT0.y)/2);
+            ctx.fill();
+            //ENDPOINT
+            var element1 = this.segments[this.segments.length-1];
+            ctx.beginPath();
+            ctx.fillStyle=this.strokeStyle;
+            ctx.strokeStyle = this.strokeStyle;
+            ctx.arc(element1.x,element1.y,2*2,0,2*Math.PI,false);
+            ctx.fill();
+        }
+        this.highlight=function(ctx){
+            //SEGMENT
+            ctx.beginPath();
+            ctx.strokeStyle = this.strokeStyleHighlight;
+            const element = this.segments[0];
+            ctx.moveTo(element.x,element.y);
+            for (let index = 1; index < this.segments.length; index++) {
+                const element = this.segments[index];
+                ctx.lineTo(element.x,element.y);
+            }
+            var element1 = this.segments[this.segments.length-1];
+            ctx.stroke();
+            //ENDPOINT
+            ctx.beginPath();
+            ctx.fillStyle=this.strokeStyleHighlight;
+            ctx.strokeStyle = this.strokeStyleHighlight;
+            ctx.arc(element1.x,element1.y,2*2,0,2*Math.PI,false);
+            ctx.fill();
+        }
+    
+        this.distance=function(a,b){
+            return Math.sqrt((a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y));
+        }
+        this.isBetween=function(a,c,b){
+            return this.distance(a,c)+this.distance(c,b)-this.distance(a,b)<1;
+        }
+        this.isOverLink=function(point){
+            for (let index = 1; index < this.segments.length; index++) {
+                const element = this.segments[index];
+                const element0 = this.segments[index-1];
+                if (this.isBetween(element0,point,element))
+                    return true;
+            }
+            return false;
+        }
     }
 };
 var mouse={
@@ -418,6 +515,9 @@ var mouse={
                     element.anchors[i].highlight(model.ctx,element.x,element.y,element.w,element.h);
                 }
                 else{
+                    if (mouse.selAnchor!=null){
+                        model.draw();
+                    }
                     mouse.selAnchor=null;
                     mouse.dragging=null;
                     model.myCanvas.style.cursor="auto";                    
@@ -439,7 +539,7 @@ var mouse={
                     var selAnchor=model.nodes[newselNode].nearestAnchor(mouseX,mouseY,true);
                     if (selAnchor!=null && newselNode!=mouse.selNode){
                         //CREATE LINK
-                        model.addLink(new link(mouse.selNode,newselNode,mouse.selAnchor,selAnchor,"link"));
+                        model.addLink(new model.link(mouse.selNode,newselNode,mouse.selAnchor,selAnchor,"link"));
                     }
 
                 }
@@ -524,101 +624,3 @@ var mouse={
         }
     }
 }
-function node(x,y,w,h,anchors,text,fillStyle,figure,args)
-{
-    this.textfill=function(ctx) {
-        var fontSize   =  12;
-        var lines      =  new Array();
-        var width = 0, i, j;
-        var result;
-        var color = this.strokeStyle || "white";
-        var text=this.text;
-        var max_width=this.w;
-
-        // Font and size is required for ctx.measureText()
-        ctx.textAlign = "left";
-        ctx.font   = fontSize + "px Arial";
-
-        ctx.textAlign="center";
-        // Start calculation
-        while ( text.length ) {
-            for( i=text.length; ctx.measureText(text.substr(0,i)).width > max_width-14; i-- );
-        
-            result = text.substr(0,i);
-        
-            if ( i !== text.length )
-                for( j=0; result.indexOf(" ",j) !== -1; j=result.indexOf(" ",j)+1 );
-            
-            lines.push( result.substr(0, j|| result.length) );
-            width = Math.max( width, ctx.measureText(lines[ lines.length-1 ]).width );
-            text  = text.substr( lines[ lines.length-1 ].length, text.length );
-        }
-        
-        ctx.font   = fontSize + "px Arial";
-
-        // Render
-        ctx.fillStyle = color;
-        var vOffSet=(this.h-(lines.length+1)*(fontSize+5))/2-5;
-        for ( i=0, j=lines.length; i<j; ++i ) {
-            ctx.fillText( lines[i], this.x+this.w/2 , this.y + 5 + fontSize + (fontSize+5) * i + vOffSet );
-        }
-    }
-
-    this.x=x;
-    this.y=y;
-    this.w=w;
-    this.h=h;
-    this.data=args;
-    this.anchors=anchors;
-    this.strokeStyle="black";
-    this.fillStyle=fillStyle;
-    this.text=text;
-    this.figure=figure;
-    this.draw=function(ctx){
-        if (typeof (this.figure)==="undefined" || typeof (this.figure)==="function"){
-            this.figure="Rectangle";
-        }
-        else
-            Figures[this.figure](ctx,this);
-    };
-    this.anchorCoords=function(anchorIndex){
-        return {x:this.x+this.anchors[anchorIndex].x*this.w,y:this.y+this.anchors[anchorIndex].y*this.h};
-    }
-    this.isInside=function(x,y){
-        if (x>=this.x && x<=this.x+this.w && y>=this.y && y<=this.y+this.h)
-            return true;
-        else
-            return false;
-    };
-    this.isInsideAnchors=function(x,y){
-        for (let index = 0; index < this.anchors.length; index++) {
-            const element = this.anchors[index];
-            if (element.isInside(x,y,this.x,this.y,this.w,this.h)==true)
-            {
-                return index;
-            }
-        }
-        return null;
-    };
-    this.nearestAnchor=function(x,y,wantAConnector){
-        var dMin=999999;
-        var sel=null;
-        for (let index = 0; index < this.anchors.length; index++) {
-            const element = this.anchors[index];
-            var d=element.distance(x,y,this.x,this.y,this.w,this.h);
-            if (d<dMin && element.cursorClass!="move")
-            {
-                if (!wantAConnector || wantAConnector && element.isConnector==true){
-                    dMin=d;
-                    sel=index;
-                }
-            }
-        }
-        return sel;
-    };
-    this.highlight=function(ctx){
-        this.anchors.forEach(element => {
-            element.draw(ctx,this.x,this.y,this.w,this.h);
-        });
-    }
-};

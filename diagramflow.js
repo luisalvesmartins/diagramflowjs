@@ -244,6 +244,34 @@ var model={
         return null;
     },
 
+    copyFrom:function(sourceModel){
+        model.nodes=[];
+        if (sourceModel.nodes){
+            for (let index = 0; index < sourceModel.nodes.length; index++) {
+                const element = sourceModel.nodes[index];
+                var anchors=[];
+                element.anchors.forEach(a => {
+                    anchors.push(new anchor(a.x,a.y,a.cursorClass,a.isConnector));
+                });
+                model.addNode(new node(element.x,element.y,element.w,element.h,anchors,element.text,element.fillStyle, Figures.Rectangle, element.data));
+            }
+        }
+        model.links=[];
+        if (sourceModel.links){
+            for (let index = 0; index < sourceModel.links.length; index++) {
+                const element = sourceModel.links[index];
+    
+                model.addLink(new link(element.from,element.to,element.anchorFrom,element.anchorTo,element.text));
+            }
+        }
+        mouse.selNode=null;
+        mouse.dragging=null;
+    },
+
+    selectNode:function(node){
+        mouse.selNode=node;
+        model.draw();
+    }
 };
 var mouse={
     dragging:false,
@@ -496,7 +524,7 @@ var mouse={
         }
     }
 }
-function node(x,y,w,h,anchors,text,fillStyle,figureCallback)
+function node(x,y,w,h,anchors,text,fillStyle,figureCallback,args)
 {
     this.textfill=function(ctx) {
         var fontSize   =  12;
@@ -540,6 +568,7 @@ function node(x,y,w,h,anchors,text,fillStyle,figureCallback)
     this.y=y;
     this.w=w;
     this.h=h;
+    this.data=args;
     this.anchors=anchors;
     this.strokeStyle="black";
     this.fillStyle=fillStyle;

@@ -241,6 +241,14 @@ var model={
                 return {x:0,y:1};
             case "n-resize":
                 return {x:0,y:-1};
+            case "ne-resize":
+                return {x:1,y:-1};
+            case "nw-resize":
+                return {x:-1,y:-1};
+            case "se-resize":
+                return {x:1,y:1};
+            case "sw-resize":
+                return {x:-1,y:1};
             }
         }
     
@@ -395,6 +403,21 @@ var model={
             ];
             break;
         case "Circle":
+            anchors=[
+                new model.anchor(0,0,"nw-resize"),
+                new model.anchor(.86,.86,"se-resize",true),
+                new model.anchor(.5,0,"n-resize",true),
+                new model.anchor(.86,.14,"ne-resize",true),
+                new model.anchor(1,0,"ne-resize"),
+                new model.anchor(.14,.14,"nw-resize",true),
+                new model.anchor(.14,.86,"sw-resize",true),
+                new model.anchor(0,.5,"w-resize",true),
+                new model.anchor(1,.5,"e-resize",true),
+                new model.anchor(0,1,"sw-resize"),
+                new model.anchor(.5,1,"s-resize",true),
+                new model.anchor(1,1,"se-resize"), 
+            ];
+            break;
         case "Diamond":
             anchors=[
                 new model.anchor(0,0,"nw-resize"),
@@ -446,7 +469,6 @@ var mouse={
             {
                 if (model.nodes[mouse.selNode].anchors[mouse.selAnchor].isConnector)
                 {
-                    console.log("A")
                     model.nodes[mouse.selNode].highlight(model.ctx);
                     mouse.selAnchor=model.nodes[mouse.selNode].nearestAnchor(mouseX,mouseY,true);
                     if (model.nodes[mouse.selNode].anchors[mouse.selAnchor].isConnector)
@@ -470,7 +492,6 @@ var mouse={
         }
         else
         {
-            console.log("B")
             if (mouse.selAnchor==null){
                 //deselect
                 mouse.selNode=null;
@@ -490,7 +511,6 @@ var mouse={
                 }
             }
             else{
-                console.log("C)")
                 if (model.nodes[mouse.selNode].anchors[mouse.selAnchor].isConnector)
                     mouse.dragging="link";
                 else

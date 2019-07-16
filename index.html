@@ -45,12 +45,14 @@ var Figures={
 
 var anchors=model.defaultAnchors("Rectangle");
 model.addNode(new model.node(10,10,100,100,anchors,"A Square, dblclick me to edit the text","green","Rectangle"));
+anchors=model.defaultAnchors("Circle");
 model.addNode(new model.node(30,140,100,100,anchors,"A Circle, click on the center handle to move","white", "Circle"));
+anchors=model.defaultAnchors("Rectangle");
 model.addNode(new model.node(250,80,150,150,anchors,"A Diamond, click on the corner handles to resize.","yellow", "Diamond"));
 model.addNode(new model.node(350,250,150,100,anchors,"A Rectangle, drag from the diamond to here to link.","Cyan", "Rectangle"));
 
-model.addLink(new model.link(0,1,6,1,"Link 1"));
-model.addLink(new model.link(1,2,4,3,"dblclick me to edit"));
+// model.addLink(new model.link(0,1,6,1,"Link 1"));
+// model.addLink(new model.link(1,2,4,3,"dblclick me to edit"));
 
 model.init("myCanvas");
 model.draw();

@@ -13,16 +13,14 @@ var model={
 
     clean:function(){
         this.ctx.beginPath();
-        this.ctx.fillStyle = "white";
-        this.ctx.fillRect(0, 0, 1000, 1000);
 
-        var grd = this.ctx.createLinearGradient(0, 500, 1000, 0);
+        var grd = this.ctx.createLinearGradient(0, this.myCanvas.height, this.myCanvas.width, 0);
         grd.addColorStop(0, "#eeeeee");
         grd.addColorStop(1, "white");
 
         // Fill with gradient
         this.ctx.fillStyle = grd;
-        this.ctx.fillRect(0, 0, 1000, 1000);
+        this.ctx.fillRect(0, 0, this.myCanvas.width, this.myCanvas.height);
         this.ctx.stroke();
     },
 
@@ -41,12 +39,24 @@ var model={
     },
     init:function(canvasName){
         this.myCanvas=document.getElementById(canvasName);
+        this.myCanvasContainer=document.getElementById(canvasName).parentElement;
         this.ctx=this.myCanvas.getContext("2d");
         this.myCanvas.addEventListener("mousedown",mouse.down)
         this.myCanvas.addEventListener("mousemove",mouse.move)
         this.myCanvas.addEventListener("mouseup",mouse.up)
         this.myCanvas.addEventListener("dblclick",mouse.dblclick)
         this.myCanvas.addEventListener("keydown",mouse.key)
+        this.myCanvas.ondragstart = function() { return false; };
+        this.myCanvas.width=this.myCanvasContainer.clientWidth;
+        this.myCanvas.height=this.myCanvasContainer.clientHeight;
+
+        console.log(this.myCanvas.height)
+        window.addEventListener("resize",function(){
+            model.myCanvas.width=model.myCanvasContainer.clientWidth;
+            model.myCanvas.height=model.myCanvasContainer.clientHeight;
+            model.draw();
+        });
+
     },
 
     findNode:function(x,y){
@@ -284,24 +294,65 @@ var model={
     
             var dx=Math.abs(aC1.x-aC2.x);
             var dy=Math.abs(aC1.y-aC2.y);
-            var dxm=(aC1.x+aC2.x)/2;
-            var dym=(aC1.y+aC2.y)/2;
+            var nX,nY;
             if (dx>dy)
             {
                 if (Math.sign(aC2.y-aC1.y)!=Math.sign(d1.y))
                 {
-                    this.segments.push({x:aC2.x,y:aC1.y});
+                    nX=aC2.x;
+                    nY=aC1.y;
                 }
                 else
-                    this.segments.push({x:aC1.x,y:aC2.y});
+                {
+                    nX=aC1.x;
+                    nY=aC2.y;
+                }
             }
             else
             {
                 if (Math.sign(aC2.x-aC1.x)!=Math.sign(d1.x))
-                    this.segments.push({x:aC2.x,y:aC1.y});
+                {
+                    nX=aC2.x;
+                    nY=aC1.y;
+                }
                 else
-                    this.segments.push({x:aC1.x,y:aC2.y});
+                {
+                    nX=aC1.x;
+                    nY=aC2.y;
+                }
             }
+            //console.log(nY + " " + aC1.y + " " + Math.sign(d1.y))
+            //console.log(nX + " " + aC1.x + " " + Math.sign(d1.x))
+            if (Math.sign(nY-aC1.y)!=Math.sign(d1.y) && nY!=aC1.y)
+            {
+                this.segments.push({x:aC2.x,y:aC1.y});
+                //this.segments.push({x:nX,y:dym});
+            }
+            else
+            {
+                if (Math.sign(nX-aC1.x)!=Math.sign(d1.x) && nX!=aC1.x && Math.sign(d1.x)!=0)
+                {
+                    if (aC2.y<aC1.y)
+                    var dym=aC1.y-model.nodes[from].h/2 - 10;
+                    else
+                    var dym=aC1.y+model.nodes[from].h/2 + 10;
+                    //console.log("A")
+                    this.segments.push({x:aC1.x,y:dym});
+                    this.segments.push({x:nX,y:dym});
+                }
+                else{
+                    if (Math.sign(aC2.y-nY)==Math.sign(d2.y))
+                    {
+                        //console.log("B")
+                        var dxm=(nX+aC1.x)/2;
+                        this.segments.push({x:dxm,y:nY});
+                        this.segments.push({x:dxm,y:aC2.y});
+                    }
+                    else
+                        this.segments.push({x:nX,y:nY});
+                }
+            }
+
             this.segments.push({x:aC2.x,y:aC2.y});
             this.segments.push({x:origaC2x,y:origaC2y});
     

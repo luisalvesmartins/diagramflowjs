@@ -24,6 +24,11 @@ var model={
         this.ctx.stroke();
     },
 
+    clear:function(){
+        this.nodes=[];
+        this.links=[];
+    },
+
     draw:function(){
         this.clean();
         for (let index = 0; index < this.nodes.length; index++) {
@@ -50,7 +55,6 @@ var model={
         this.myCanvas.width=this.myCanvasContainer.clientWidth;
         this.myCanvas.height=this.myCanvasContainer.clientHeight;
 
-        console.log(this.myCanvas.height)
         window.addEventListener("resize",function(){
             model.myCanvas.width=model.myCanvasContainer.clientWidth;
             model.myCanvas.height=model.myCanvasContainer.clientHeight;
@@ -60,13 +64,20 @@ var model={
     },
 
     findNode:function(x,y){
+        var minArea=34435345345344;
+        var selIndex=null;
         for (let index = 0; index < this.nodes.length; index++) {
             if (this.nodes[index].isInside(x,y))
             {
-                return index;
+                var calcArea=this.nodes[index].w*this.nodes[index].h;
+                if (calcArea<minArea)
+                {
+                    selIndex=index;
+                    minArea=calcArea;
+                }
             }
         }
-        return null;
+        return selIndex;
     },
 
     copyFrom:function(sourceModel){
@@ -182,10 +193,10 @@ var model={
             }
         }
 
-        this.x=x;
-        this.y=y;
-        this.w=w;
-        this.h=h;
+        this.x=Number(x);
+        this.y=Number(y);
+        this.w=Number(w);
+        this.h=Number(h);
         this.data=args;
         this.anchors=anchors;
         this.strokeStyle="black";
@@ -323,9 +334,14 @@ var model={
             }
             //console.log(nY + " " + aC1.y + " " + Math.sign(d1.y))
             //console.log(nX + " " + aC1.x + " " + Math.sign(d1.x))
+            var lastP;
             if (Math.sign(nY-aC1.y)!=Math.sign(d1.y) && nY!=aC1.y)
             {
-                this.segments.push({x:aC2.x,y:aC1.y});
+                // if (this.checkConflict(aC1.x,aC1.y, aC2.x,aC1.y,model.nodes[from]))
+                //     console.log("conflict");
+
+                lastP={x:aC2.x,y:aC1.y}
+                this.segments.push(lastP);
                 //this.segments.push({x:nX,y:dym});
             }
             else
@@ -333,27 +349,63 @@ var model={
                 if (Math.sign(nX-aC1.x)!=Math.sign(d1.x) && nX!=aC1.x && Math.sign(d1.x)!=0)
                 {
                     if (aC2.y<aC1.y)
-                    var dym=aC1.y-model.nodes[from].h/2 - 10;
+                        var dym=aC1.y-model.nodes[from].h/2 - 10;
                     else
-                    var dym=aC1.y+model.nodes[from].h/2 + 10;
-                    //console.log("A")
+                        var dym=aC1.y+model.nodes[from].h/2 + 10;
+                    if (this.checkConflict(aC1.x,aC1.y, aC1.x,dym,model.nodes[from]))
+                        console.log("conflict");
                     this.segments.push({x:aC1.x,y:dym});
-                    this.segments.push({x:nX,y:dym});
+                    if (this.checkConflict(aC1.x,dym,nX,dym,model.nodes[from]))
+                        console.log("conflict");
+                    lastP={x:nX,y:dym}
+                    this.segments.push(lastP);
                 }
                 else{
                     if (Math.sign(aC2.y-nY)==Math.sign(d2.y))
                     {
                         //console.log("B")
                         var dxm=(nX+aC1.x)/2;
+                        if (this.checkConflict(aC1.x,aC1.y, dxm,nY,model.nodes[from]))
+                            console.log("conflict");
                         this.segments.push({x:dxm,y:nY});
-                        this.segments.push({x:dxm,y:aC2.y});
+                        if (this.checkConflict(dxm,nY,dxm,aC2.y, model.nodes[from]))
+                            console.log("conflict");
+                        lastP={x:dxm,y:aC2.y}
+                        this.segments.push(lastP);
                     }
                     else
-                        this.segments.push({x:nX,y:nY});
+                    {
+                        if (this.checkConflict(aC1.x,aC1.y,nX,nY, model.nodes[from]))
+                            console.log("conflict");
+                        lastP={x:nX,y:nY}
+                        this.segments.push(lastP);
+                    }
                 }
             }
 
+            var conflict=this.checkConflict(lastP.x, lastP.y,aC2.x,aC2.y, model.nodes[from])
+            switch (conflict) {
+                case "V":
+                    if(lastP.x>model.nodes[from].x+model.nodes[from].w/2+10){
+                        this.segments.push({x:model.nodes[from].x+model.nodes[from].w+10,y:lastP.y});
+                        this.segments.push({x:model.nodes[from].x+model.nodes[from].w+10,y:model.nodes[from].y-10});
+                        this.segments.push({x:lastP.x,y:model.nodes[from].y-10});
+                    }
+                    else
+                    {
+                        this.segments.push({x:model.nodes[from].x-10,y:lastP.y});
+                        this.segments.push({x:model.nodes[from].x-10,y:model.nodes[from].y-10});
+                        this.segments.push({x:lastP.x,y:model.nodes[from].y-10});
+                    }
+                    break;
+                case "H":
+                    console.log("H")
+                    break;
+                default:
+                    break;
+            }
             this.segments.push({x:aC2.x,y:aC2.y});
+
             this.segments.push({x:origaC2x,y:origaC2y});
     
             var element0 = this.segments[0];
@@ -370,6 +422,31 @@ var model={
             }
         }
     
+this.checkConflict=function(x1,y1,x2,y2,node){
+    if (x1==x2){
+        //V
+        var nY1=y1;
+        var nY2=y2;
+        if (y1>y2)
+        {
+            nY1=y2;
+            nY2=y1;
+        }
+        if (x1>=node.x && x1<=node.x+node.w)
+        {
+            if (nY1<=node.y && nY2>=node.y)
+            {
+                return "V";
+            }
+        }
+    }
+    else
+    {
+        //H
+    }
+    return null;
+}
+
         this.reSegment();
     
         this.draw=function(ctx){
@@ -538,6 +615,34 @@ var mouse={
                 if (model.nodes[mouse.selNode].anchors[mouse.selAnchor].isConnector)
                     mouse.dragging="link";
                 mouse.dragging="move";
+
+                this.nodesToMove=[];
+                this.linksToMove=[];
+                for (let j = 0; j < model.links.length; j++) {
+                    const elementLinked=model.links[j];
+                    if (elementLinked.to==mouse.selNode || elementLinked.from==mouse.selNode){
+                        this.linksToMove.push(j);
+                    }
+                };
+
+                var hostNode=model.nodes[mouse.selNode];
+                for (let i = 0; i < model.nodes.length; i++) {
+                    const element = model.nodes[i];
+                    var elemDragOrigin={x:mouseX-element.x,y:mouseY-element.y};
+    
+                    if (i!=mouse.selNode && element.x>=hostNode.x && element.x+element.w<=hostNode.x+hostNode.w && element.y>=hostNode.y && element.y+element.h<=hostNode.y+hostNode.h)
+                    {
+                        this.nodesToMove.push({index:i,elemDragOrigin:elemDragOrigin});
+
+                        for (let j = 0; j < model.links.length; j++) {
+                            const elementLinked=model.links[j];
+                            if (elementLinked.to==i || elementLinked.from==i){
+                                this.linksToMove.push(j);
+                            }
+                        };
+                    }
+                }
+    
             }
             model.draw();
         }
@@ -588,11 +693,22 @@ var mouse={
             model.nodes[mouse.selNode].x=mouseX-mouse.dragOrigin.x;
             model.nodes[mouse.selNode].y=mouseY-mouse.dragOrigin.y;
 
-            model.links.forEach(element => {
-                if (element.to==mouse.selNode || element.from==mouse.selNode){
-                    element.reSegment();
-                }
+            
+            this.nodesToMove.forEach(nodeLinked => {
+                const element = model.nodes[nodeLinked.index];
+
+                element.x=mouseX-nodeLinked.elemDragOrigin.x;
+                element.y=mouseY-nodeLinked.elemDragOrigin.y;
             });
+            this.linksToMove.forEach(elementLinked => {
+                model.links[elementLinked].reSegment();
+            });
+
+            // model.links.forEach(element => {
+            //     if (element.to==mouse.selNode || element.from==mouse.selNode){
+            //         element.reSegment();
+            //     }
+            // });
             model.draw();
         }
         else if (mouse.dragging=="anchor")

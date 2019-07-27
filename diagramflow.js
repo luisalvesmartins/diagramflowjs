@@ -180,12 +180,13 @@ var model={
         this.y=y;
         this.radius=5;
         this.cursorClass=cursorClass;
-        this.strokeStyle="black";
+        this.strokeStyle="gray";
         this.strokeStyleHighlight="red";
 
         this.draw=function(ctx,originX,originY,width,height){
             ctx.beginPath();
             ctx.strokeStyle = this.strokeStyle;
+            ctx.lineWidth=1;
             ctx.rect(x*width+originX-this.radius,y*height+originY-this.radius,this.radius*2,this.radius*2);
             ctx.stroke();
         }

@@ -9,27 +9,51 @@ Model can be extended by creating your own figures.
 
 ![sample](./sample.png)
 
-A node is added by defining the anchors and the image render:
+A node is added by defining the connectors and the image render:
 
 `````javascript
-//Typical anchors for a square object
-var anchors=[
-    new model.anchor(0,0,"nw-resize"),
-    new model.anchor(.5,0,"n-resize",true),
-    new model.anchor(1,0,"ne-resize"),
-    new model.anchor(0,.5,"w-resize",true),
-    new model.anchor(1,.5,"e-resize",true),
-    new model.anchor(0,1,"sw-resize"),
-    new model.anchor(.5,1,"s-resize",true),
-    new model.anchor(1,1,"se-resize")
-];
+    new model.connector(x,y,mode,title,connectorDecoration,options)
+`````
 
-//or use the default anchors (easier,eh?)
-anchors=model.defaultAnchors("Rectangle");
+* x is [0,1] relative to object width
+* y is [0,1] relative to object height
+* mode: "input", "output", "mixed"
+* title: text to show when highlighted
+* connectorDecoration:
+    * fillStyle:color
+    * strokeStyle: color
+    * highlightStrokeStyle:color
+    * highlightText:color
+* options:
+    * dropAllowed: true/false, 
+    * dragAllowed: true/false, 
+    * radius: number - default:7px
+
+
+Sample:
+
+`````javascript
+var connectorDecoration={
+    fillStyle:"green", 
+    strokeStyle: "black", 
+    highlightStrokeStyle:"red", 
+    highlightText:"black"};
+
+var connectorOptions={
+    dropAllowed:true, 
+    dragAllowed:true, 
+    radius:7};
+
+var connectors=[
+    new model.connector(0,.25,"input","input1",connectorDecoration, connectorOptions),
+
+    new model.connector(1,.3,"output","output1",connectorDecoration, connectorOptions),
+    new model.connector(1,.6,"mixed","mixed connector",connectorDecoration, connectorOptions),
+];
 
 //add the node
 model.addNode(
-    new model.node(x,y, width,height, anchors, text, color, renderFunction, customProperties)
+    new model.node(x,y, width,height, connectors, text, color, renderFunction, customProperties)
     );
 `````
 

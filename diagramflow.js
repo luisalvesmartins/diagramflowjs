@@ -3,6 +3,7 @@ var model={
     nodes:[],
     links:[],
     myCanvas:null,
+    rought:false,
 
     addNode:function(node){
         this.nodes.push(node);
@@ -591,10 +592,18 @@ var model={
             var dx = tox - fromx;
             var dy = toy - fromy;
             var angle = Math.atan2(dy, dx);
-            context.beginPath();
-            context.moveTo(fromx, fromy);
-            context.lineTo(tox, toy);
-            context.stroke();
+            
+            if (model.rough){
+                const rc=rough.canvas(document.getElementById(context.canvas.id));
+                rc.line(fromx,fromy,tox,toy);
+            }
+            else{
+                context.beginPath();
+                context.moveTo(fromx, fromy);
+                context.lineTo(tox, toy);
+                context.stroke();
+            }
+
             context.beginPath();
             context.fillStyle="black";
             context.moveTo(tox, toy);

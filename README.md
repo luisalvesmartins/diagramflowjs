@@ -9,6 +9,10 @@ Model can be extended by creating your own figures.
 
 ![sample](./sample.png)
 
+New update with the possibility of having Rough figures (https://roughjs.com/) and new sample here: https://lambot.blob.core.windows.net/github/diagramflowjs/index_rough.html 
+
+![sample_rough](./sample_rough.png)
+
 A node is added by defining the connectors and the image render:
 
 `````javascript
@@ -76,6 +80,14 @@ A link is added by calling
 
 `````javascript
 model.addLink(new model.link( fromNode, toNode, anchorFrom, anchorTo, text));
+`````
+
+Initializing the model:
+
+`````javascript
+model.init("myCanvas");
+model.rough=true;
+model.draw();
 `````
 
 Check the demo index.html page for a running example

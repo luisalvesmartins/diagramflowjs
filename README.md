@@ -1,4 +1,7 @@
 # diagramflowjs
+
+*updated 03.2021*: added the "square" mode for links. 
+
 A light javascript library to interactively create diagram flows or flowcharts.
 
 Play with it here: https://lambot.blob.core.windows.net/github/diagramflowjs/index.html 
@@ -85,8 +88,10 @@ Example of a renderFunction for a rectangle:
 A link is added by calling
 
 `````javascript
-model.addLink(new model.link( fromNode, toNode, anchorFrom, anchorTo, text));
+model.addLink(new model.link( fromNode, toNode, anchorFrom, anchorTo, text, mode(optional)));
 `````
+
+link mode can be "straight"(or null) or "square"
 
 Initializing the model:
 

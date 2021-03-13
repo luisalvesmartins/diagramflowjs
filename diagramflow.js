@@ -1,3 +1,4 @@
+const DIAGRAMFLOW_ARROW_SIZE=15;
 var model={
     ctx:null,
     nodes:[],
@@ -375,6 +376,7 @@ var model={
             this.mode="straight";
     
         this.reSegment=function(){
+            console.log(this.mode)
             if (this.mode=="straight" || this.mode==null)
             {
                 var aC1=model.nodes[this.from].connectorCoords(this.anchorFrom);
@@ -404,142 +406,174 @@ var model={
 
                     var x1=model.nodes[this.to].connectors[this.anchorTo].x-.5;
                     var y1=model.nodes[this.to].connectors[this.anchorTo].y-.5;
-                    //console.log(x1 + " " + y1);
                     if (Math.abs(x1)>Math.abs(y1))
                         y1=0;
                     else
                         x1=0;
                     d2.x=Math.sign(x1);
                     d2.y=Math.sign(y1);
-                    //console.log(d2)
-
-                    // var dxm=(aC1.x+aC2.x)/2;
-                    // var dym=(aC1.y+aC2.y)/2;
-                    // this.segments.push({x:dxm,y:aC1.y});
-                    // this.segments.push({x:dxm,y:aC2.y});
+   
     
-    
-                    // this.segments.push({x:aC2.x,y:aC2.y});
+                    this.segments=[{x:aC1.x,y:aC1.y}];
+                    this.segments.push({x:aC1.x+DIAGRAMFLOW_ARROW_SIZE*d1.x,y:aC1.y+DIAGRAMFLOW_ARROW_SIZE*d1.y});
 
+                    var dx=(aC2.x-aC1.x);
+                    var dy=(aC2.y-aC1.y);
+                    if (dx<0 && d1.x>0){
+                        if (d2.x<0){
+                            this.segments.push({x:aC1.x+DIAGRAMFLOW_ARROW_SIZE*d1.x,y:aC1.y+dy/2});
+                            this.segments.push({x:aC2.x+DIAGRAMFLOW_ARROW_SIZE*d2.x,y:aC1.y+dy/2});
+
+                        }
+                        else{
+                            this.segments.push({x:aC1.x+DIAGRAMFLOW_ARROW_SIZE*d1.x,y:aC2.y});
+                        }
+
+                        //this.segments.push({x:aC1.x+10*d1.x,y:aC2.y});
+                    }
+                    else
+                    {
+                        if (d2.x>0){
+                            this.segments.push({x:aC2.x+DIAGRAMFLOW_ARROW_SIZE*d2.x,y:aC1.y});
+                            this.segments.push({x:aC2.x+DIAGRAMFLOW_ARROW_SIZE*d2.x,y:aC2.y});
+                        }
+                        else{
+                            if (aC1.x+dx/2>aC1.x){
+                                //do V-V
+                                this.segments.push({x:aC1.x+DIAGRAMFLOW_ARROW_SIZE*d1.x,y:aC1.y+dy/2});
+                                this.segments.push({x:aC2.x+DIAGRAMFLOW_ARROW_SIZE*d2.x,y:aC1.y+dy/2});
+                            }
+                            else
+                            {
+                                this.segments.push({x:aC1.x+dx/2,y:aC1.y});
+                                this.segments.push({x:aC1.x+dx/2,y:aC2.y+DIAGRAMFLOW_ARROW_SIZE*d2.y});
+                            }
+                        }
+                    }
+
+                    this.segments.push({x:aC2.x+DIAGRAMFLOW_ARROW_SIZE*d2.x,y:aC2.y+DIAGRAMFLOW_ARROW_SIZE*d2.y});
+                    this.segments.push({x:aC2.x,y:aC2.y});
+                    this.indexText=Math.floor(this.segments.length/2);
+                    return;
                 }
                 else
                 {
                     d1=this.directionToVector(model.nodes[from].connectors[this.anchorFrom].cursorClass);
                     d2=this.directionToVector(model.nodes[to].connectors[this.anchorTo].cursorClass);
                 }
-                    //FIRST
-                    aC1.x+=10*d1.x;
-                    aC1.y+=10*d1.y;
-                    this.segments.push({x:aC1.x,y:aC1.y});
+                //     //FIRST
+                //     aC1.x+=10*d1.x;
+                //     aC1.y+=10*d1.y;
+                //     this.segments.push({x:aC1.x,y:aC1.y});
 
-                    var origaC2x=aC2.x;
-                    var origaC2y=aC2.y;
-                    aC2.x+=10*d2.x;
-                    aC2.y+=10*d2.y;
-                    this.segments.push({x:aC2.x,y:aC2.y});
+                //     var origaC2x=aC2.x;
+                //     var origaC2y=aC2.y;
+                //     aC2.x+=10*d2.x;
+                //     aC2.y+=10*d2.y;
+                //     this.segments.push({x:aC2.x,y:aC2.y});
 
-                    var dx=Math.abs(aC1.x-aC2.x);
-                    var dy=Math.abs(aC1.y-aC2.y);
-                    var nX,nY;
-                    if (dx>dy)
-                    {
-                        if (Math.sign(aC2.y-aC1.y)!=Math.sign(d1.y))
-                        {
-                            nX=aC2.x;
-                            nY=aC1.y;
-                        }
-                        else
-                        {
-                            nX=aC1.x;
-                            nY=aC2.y;
-                        }
-                    }
-                    else
-                    {
-                        if (Math.sign(aC2.x-aC1.x)!=Math.sign(d1.x))
-                        {
-                            nX=aC2.x;
-                            nY=aC1.y;
-                        }
-                        else
-                        {
-                            nX=aC1.x;
-                            nY=aC2.y;
-                        }
-                    }
-                    var lastP;
-                    if (Math.sign(nY-aC1.y)!=Math.sign(d1.y) && nY!=aC1.y)
-                    {
-                        // if (this.checkConflict(aC1.x,aC1.y, aC2.x,aC1.y,model.nodes[from]))
-                        //     console.log("conflict");
+                //     var dx=Math.abs(aC1.x-aC2.x);
+                //     var dy=Math.abs(aC1.y-aC2.y);
+                //     var nX,nY;
+                //     if (dx>dy)
+                //     {
+                //         if (Math.sign(aC2.y-aC1.y)!=Math.sign(d1.y))
+                //         {
+                //             nX=aC2.x;
+                //             nY=aC1.y;
+                //         }
+                //         else
+                //         {
+                //             nX=aC1.x;
+                //             nY=aC2.y;
+                //         }
+                //     }
+                //     else
+                //     {
+                //         if (Math.sign(aC2.x-aC1.x)!=Math.sign(d1.x))
+                //         {
+                //             nX=aC2.x;
+                //             nY=aC1.y;
+                //         }
+                //         else
+                //         {
+                //             nX=aC1.x;
+                //             nY=aC2.y;
+                //         }
+                //     }
+                //     var lastP;
+                //     if (Math.sign(nY-aC1.y)!=Math.sign(d1.y) && nY!=aC1.y)
+                //     {
+                //         // if (this.checkConflict(aC1.x,aC1.y, aC2.x,aC1.y,model.nodes[from]))
+                //         //     console.log("conflict");
         
-                        lastP={x:aC2.x,y:aC2.y}
-                        this.segments.push(lastP);
-                        //this.segments.push({x:nX,y:dym});
-                    }
-                    else
-                    {
-                        if (Math.sign(nX-aC1.x)!=Math.sign(d1.x) && nX!=aC1.x && Math.sign(d1.x)!=0)
-                        {
-                            if (aC2.y<aC1.y)
-                                var dym=aC1.y-model.nodes[from].h/2 - 10;
-                            else
-                                var dym=aC1.y+model.nodes[from].h/2 + 10;
-                            if (this.checkConflict(aC1.x,aC1.y, aC1.x,dym,model.nodes[from]))
-                                console.log("conflict");
-                            this.segments.push({x:aC1.x,y:dym});
-                            if (this.checkConflict(aC1.x,dym,nX,dym,model.nodes[from]))
-                                console.log("conflict");
-                            lastP={x:nX,y:dym}
-                            this.segments.push(lastP);
-                        }
-                        else{
-                            if (Math.sign(aC2.y-nY)==Math.sign(d2.y))
-                            {
-                                //console.log("B")
-                                var dxm=(nX+aC1.x)/2;
-                                if (this.checkConflict(aC1.x,aC1.y, dxm,nY,model.nodes[from]))
-                                    console.log("conflict");
-                                this.segments.push({x:dxm,y:nY});
-                                if (this.checkConflict(dxm,nY,dxm,aC2.y, model.nodes[from]))
-                                    console.log("conflict");
-                                lastP={x:dxm,y:aC2.y}
-                                this.segments.push(lastP);
-                            }
-                            else
-                            {
-                                if (this.checkConflict(aC1.x,aC1.y,nX,nY, model.nodes[from]))
-                                    console.log("conflict");
-                                lastP={x:nX,y:nY}
-                                this.segments.push(lastP);
-                            }
-                        }
-                        var conflict=this.checkConflict(lastP.x, lastP.y,aC2.x,aC2.y, model.nodes[from])
-                        switch (conflict) {
-                            case "V":
-                                if(lastP.x>model.nodes[from].x+model.nodes[from].w/2+10){
-                                    this.segments.push({x:model.nodes[from].x+model.nodes[from].w+10,y:lastP.y});
-                                    this.segments.push({x:model.nodes[from].x+model.nodes[from].w+10,y:model.nodes[from].y-10});
-                                    this.segments.push({x:lastP.x,y:model.nodes[from].y-10});
-                                }
-                                else
-                                {
-                                    this.segments.push({x:model.nodes[from].x-10,y:lastP.y});
-                                    this.segments.push({x:model.nodes[from].x-10,y:model.nodes[from].y-10});
-                                    this.segments.push({x:lastP.x,y:model.nodes[from].y-10});
-                                }
-                                break;
-                            case "H":
-                                console.log("H")
-                                break;
-                            default:
-                                break;
-                        }
-                        this.segments.push({x:aC2.x,y:aC2.y});
+                //         lastP={x:aC2.x,y:aC2.y}
+                //         this.segments.push(lastP);
+                //         //this.segments.push({x:nX,y:dym});
+                //     }
+                //     else
+                //     {
+                //         if (Math.sign(nX-aC1.x)!=Math.sign(d1.x) && nX!=aC1.x && Math.sign(d1.x)!=0)
+                //         {
+                //             if (aC2.y<aC1.y)
+                //                 var dym=aC1.y-model.nodes[from].h/2 - 10;
+                //             else
+                //                 var dym=aC1.y+model.nodes[from].h/2 + 10;
+                //             if (this.checkConflict(aC1.x,aC1.y, aC1.x,dym,model.nodes[from]))
+                //                 console.log("conflict");
+                //             this.segments.push({x:aC1.x,y:dym});
+                //             if (this.checkConflict(aC1.x,dym,nX,dym,model.nodes[from]))
+                //                 console.log("conflict");
+                //             lastP={x:nX,y:dym}
+                //             this.segments.push(lastP);
+                //         }
+                //         else{
+                //             if (Math.sign(aC2.y-nY)==Math.sign(d2.y))
+                //             {
+                //                 //console.log("B")
+                //                 var dxm=(nX+aC1.x)/2;
+                //                 if (this.checkConflict(aC1.x,aC1.y, dxm,nY,model.nodes[from]))
+                //                     console.log("conflict");
+                //                 this.segments.push({x:dxm,y:nY});
+                //                 if (this.checkConflict(dxm,nY,dxm,aC2.y, model.nodes[from]))
+                //                     console.log("conflict");
+                //                 lastP={x:dxm,y:aC2.y}
+                //                 this.segments.push(lastP);
+                //             }
+                //             else
+                //             {
+                //                 if (this.checkConflict(aC1.x,aC1.y,nX,nY, model.nodes[from]))
+                //                     console.log("conflict");
+                //                 lastP={x:nX,y:nY}
+                //                 this.segments.push(lastP);
+                //             }
+                //         }
+                //         var conflict=this.checkConflict(lastP.x, lastP.y,aC2.x,aC2.y, model.nodes[from])
+                //         switch (conflict) {
+                //             case "V":
+                //                 if(lastP.x>model.nodes[from].x+model.nodes[from].w/2+10){
+                //                     this.segments.push({x:model.nodes[from].x+model.nodes[from].w+10,y:lastP.y});
+                //                     this.segments.push({x:model.nodes[from].x+model.nodes[from].w+10,y:model.nodes[from].y-10});
+                //                     this.segments.push({x:lastP.x,y:model.nodes[from].y-10});
+                //                 }
+                //                 else
+                //                 {
+                //                     this.segments.push({x:model.nodes[from].x-10,y:lastP.y});
+                //                     this.segments.push({x:model.nodes[from].x-10,y:model.nodes[from].y-10});
+                //                     this.segments.push({x:lastP.x,y:model.nodes[from].y-10});
+                //                 }
+                //                 break;
+                //             case "H":
+                //                 console.log("H")
+                //                 break;
+                //             default:
+                //                 break;
+                //         }
+                //         this.segments.push({x:aC2.x,y:aC2.y});
             
             
-                    }
-                this.segments.push({x:origaC2x,y:origaC2y});
+                //     }
+                // this.segments.push({x:origaC2x,y:origaC2y});
            
                 
             }
@@ -588,7 +622,8 @@ var model={
         this.reSegment();
         
         this.arrow=function(context, fromx, fromy, tox, toy) {
-            var headlen = 15; // length of head in pixels
+            var headlen = DIAGRAMFLOW_ARROW_SIZE; // length of head in pixels
+            headlen=15;
             var dx = tox - fromx;
             var dy = toy - fromy;
             var angle = Math.atan2(dy, dx);

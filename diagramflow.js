@@ -4,7 +4,7 @@ var model={
     nodes:[],
     links:[],
     myCanvas:null,
-    rought:false,
+    rough:false,
 
     addNode:function(node){
         this.nodes.push(node);

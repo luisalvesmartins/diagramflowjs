@@ -4,12 +4,19 @@ var model={
     nodes:[],
     links:[],
     myCanvas:null,
-    rought:false,
+    rough:false,
 
     addNode:function(node){
         this.nodes.push(node);
     },
     addLink:function(link){
+		for(let i= 0; i < this.links.length; i++){
+    		if(this.links[i].from == link.from && this.links[i].to == link.to 
+			&& this.links[i].anchorIndexFrom == link.anchorIndexFrom && this.links[i].anchorIndexTo == link.anchorIndexTo){
+    			console.log("There is already a link here!");
+    			return;
+    		}
+    	}
         this.links.push(link);
     },
 
@@ -40,7 +47,7 @@ var model={
         for (let index = 0; index < this.links.length; index++) {
             this.links[index].draw(this.ctx);
         }
-        if (mouse.selNode!=null){
+        if (mouse.selNode!=null && this.nodes[mouse.selNode] != null){
             this.nodes[mouse.selNode].highlight(this.ctx);
         }
     },
